@@ -1,0 +1,7 @@
+{
+    "require": {
+        "amocrm/oauth2-amocrm": "^2.0",
+        "league/oauth2-client": "^2.6",
+        "amocrm/amocrm-api-library": "^0.4.6"
+    }
+}
