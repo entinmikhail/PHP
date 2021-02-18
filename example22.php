@@ -45,10 +45,6 @@ if (isset($_GET['referer'])) {
 
 if (!isset($_GET['request'])) {
     if (!isset($_GET['code'])) {
-        /**
-         * Просто отображаем кнопку авторизации или получаем ссылку для авторизации
-         * По-умолчанию - отображаем кнопку
-         */
         $_SESSION['oauth2state'] = bin2hex(random_bytes(16));
         if (true) {
             echo '<div>
@@ -79,12 +75,7 @@ if (!isset($_GET['request'])) {
         unset($_SESSION['oauth2state']);
         exit('Invalid state');
     }
-
-    /**
-     * Ловим обратный код
-     */
     try {
-        /** @var \League\OAuth2\Client\Token\AccessToken $access_token */
         $accessToken = $provider->getAccessToken(new League\OAuth2\Client\Grant\AuthorizationCode(), [
             'code' => $_GET['code'],
         ]);
@@ -100,8 +91,6 @@ if (!isset($_GET['request'])) {
     } catch (Exception $e) {
         die((string)$e);
     }
-
-    /** @var \AmoCRM\OAuth2\Client\Provider\AmoCRMResourceOwner $ownerDetails */
     $ownerDetails = $provider->getResourceOwner($accessToken);
 
     printf('Hello, %s!', $ownerDetails->getName());
@@ -111,13 +100,8 @@ if (!isset($_GET['request'])) {
 
     $provider->setBaseDomain($accessToken->getValues()['baseDomain']);
 
-    /**
-     * Проверяем активен ли токен и делаем запрос или обновляем токен
-     */
+
     if ($accessToken->hasExpired()) {
-        /**
-         * Получаем токен по рефрешу
-         */
         try {
             $accessToken = $provider->getAccessToken(new League\OAuth2\Client\Grant\RefreshToken(), [
                 'refresh_token' => $accessToken->getRefreshToken(),
@@ -207,69 +191,6 @@ for($i = 0;$i != 1000;$i++){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// $company->setId(1231412)->setName('12');
-// $lead->setId(3123123)->setName('12');
-// $contact->setName('qwe');
-
-// $linksCollection->add((new ContactModel())->setId(2376823));
-
-
-
-// $contactModel = $contactsService->addOne($contact);
-// $leadsCollection->add($lead);
-// $leadsCollection = $leadsService->add($leadsCollection);
-
-// try {
-//     $linksCollection = $leadsService->link((new LeadModel())->setId(1559405), $linksCollection);
-// } catch (AmoCRMApiException $e) {
-//     printError($e);
-//     die;
-// }
-
-// var_dump($linksCollection);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    
-    
-   
-
-
-
-
-
-
-
-
-
 function saveToken($accessToken)
 {
     if (
@@ -291,10 +212,6 @@ function saveToken($accessToken)
         exit('Invalid access token ' . var_export($accessToken, true));
     }
 }
-
-/**
- * @return \League\OAuth2\Client\Token\AccessToken
- */
 function getToken()
 {
     $accessToken = json_decode(file_get_contents(TOKEN_FILE), true);
