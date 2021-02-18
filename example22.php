@@ -175,7 +175,6 @@ $apiClient->setAccessToken($accessToken)
 $leadsService = $apiClient->leads();
 $contactsService = $apiClient->contacts();
 $companiesService = $apiClient->companies();
-$customFieldsService = $apiClient->customFields(EntityTypesInterface::CONTACTS);
 
 for($i = 0;$i != 1;$i++){
     $leadsCollection = new LeadsCollection();
@@ -193,40 +192,32 @@ for($i = 0;$i != 1;$i++){
     $companiesCollection->add($company);
     $leadsCollection->add($lead);
 
+
+    $contactCustomFieldsValues = new CustomFieldsValuesCollection();
+    $multiselectCustomFieldValuesModel = new MultiselectCustomFieldValuesModel();
+    $multiselectCustomFieldValuesModel->setFieldId(123);
+    $multiselectCustomFieldValuesModel->setValues((new MultiselectCustomFieldValueCollection())
+                                        ->add((new MultiselectCustomFieldValueModel())->setValue(1))
+                                        ->add((new MultiselectCustomFieldValueModel())->setValue(2))
+                                        ->add((new MultiselectCustomFieldValueModel())->setValue(3)));
+    $contactCustomFieldsValues->add($multiselectCustomFieldValuesModel);
+    //$lead->setCustomFieldsValues($contactCustomFieldsValues);
+
+
+
     $companiesCollection = $companiesService->add($companiesCollection);
     $leadsCollection = $leadsService->add($leadsCollection);
     $contactModel = $contactsService->addOne($contact);
 
     $linksCollection->add((new ContactModel())->setId($contact->getId()))
-                    ->add((new CompanyModel())->setId($company->getId()));
+                    ->add((new CompanyModel())->setId($company->getId()))
+                    ->add((new CustomFieldsValuesCollection())->setFieldId($contactCustomFieldsValues->getFieldId));
 
     $linksCollection = $leadsService->link((new LeadModel())->setId($lead->getId()), $linksCollection);
 }
-$contact = new ContactModel();
-$contact->setName('tr');
-$contactCustomFieldsValues = new CustomFieldsValuesCollection();
-$multiselectCustomFieldValuesModel = new MultiselectCustomFieldValuesModel();
-$multiselectCustomFieldValuesModel->setValues((new MultiselectCustomFieldValueCollection())
-                                  ->add((new MultiselectCustomFieldValueModel())->setValue(1))
-                                  ->add((new MultiselectCustomFieldValueModel())->setValue(2))
-                                  ->add((new MultiselectCustomFieldValueModel())->setValue(3)));
 
 
-$contactCustomFieldsValues->add($multiselectCustomFieldValuesModel);
-$contact->setCustomFieldsValues($contactCustomFieldsValues);
-echo ('<pre>');
-var_dump($contact);
-
-try {
-    $contactModel = $apiClient->contacts()->addOne($contact);
-} catch (AmoCRMApiException $e) {
-    printError($e);
-    die;
-}
-
-
-
-
+    
 function saveToken($accessToken)
 {
     if (
