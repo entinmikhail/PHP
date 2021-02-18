@@ -24,6 +24,22 @@ use League\OAuth2\Client\Token\AccessTokenInterface;
 use AmoCRM\Models\CatalogElementModel;
 use AmoCRM\Models\Customers\CustomerModel;
 use AmoCRM\Collections\CompaniesCollection;
+use AmoCRM\Collections\CustomFields\CustomFieldEnumsCollection;
+use AmoCRM\Helpers\EntityTypesInterface;
+use AmoCRM\Collections\CustomFields\CustomFieldsCollection;
+use AmoCRM\Models\CustomFields\CheckboxCustomFieldModel;
+use AmoCRM\Models\CustomFields\CustomFieldModel;
+use AmoCRM\Models\CustomFields\EnumModel;
+use AmoCRM\Models\CustomFields\SelectCustomFieldModel;
+use AmoCRM\Models\CustomFields\MultitextCustomFieldModel;
+use AmoCRM\Models\CustomFieldsValues\ValueModels\MultiselectCustomFieldValueModel;
+use AmoCRM\Models\CustomFields;
+use AmoCRM\Collections\CustomFields\CustomFieldRequiredStatusesCollection;
+use AmoCRM\Models\BaseApiModel;
+use AmoCRM\Models\CustomFieldsValues\ValueCollections\MultiselectCustomFieldValueCollection;
+use AmoCRM\Models\CustomFieldsValues\MultiselectCustomFieldValuesModel;
+use AmoCRM\Models\CustomFieldsValues;
+
 
 
 include_once __DIR__ . '/vendor/autoload.php';
@@ -93,7 +109,7 @@ if (!isset($_GET['request'])) {
     }
     $ownerDetails = $provider->getResourceOwner($accessToken);
 
-    printf('Hello, %s!', $ownerDetails->getName());
+    //printf('Hello, %s!', $ownerDetails->getName());
 
 } else {
     $accessToken = getToken();
@@ -159,9 +175,9 @@ $apiClient->setAccessToken($accessToken)
 $leadsService = $apiClient->leads();
 $contactsService = $apiClient->contacts();
 $companiesService = $apiClient->companies();
+$customFieldsService = $apiClient->customFields(EntityTypesInterface::CONTACTS);
 
-
-for($i = 0;$i != 1000;$i++){
+for($i = 0;$i != 1;$i++){
     $leadsCollection = new LeadsCollection();
     $companiesCollection = new CompaniesCollection();
     $linksCollection = new LinksCollection();
@@ -186,7 +202,27 @@ for($i = 0;$i != 1000;$i++){
 
     $linksCollection = $leadsService->link((new LeadModel())->setId($lead->getId()), $linksCollection);
 }
+$contact = new ContactModel();
+$contact->setName('tr');
+$contactCustomFieldsValues = new CustomFieldsValuesCollection();
+$multiselectCustomFieldValuesModel = new MultiselectCustomFieldValuesModel();
+$multiselectCustomFieldValuesModel->setValues((new MultiselectCustomFieldValueCollection())
+                                  ->add((new MultiselectCustomFieldValueModel())->setValue(1))
+                                  ->add((new MultiselectCustomFieldValueModel())->setValue(2))
+                                  ->add((new MultiselectCustomFieldValueModel())->setValue(3)));
 
+
+$contactCustomFieldsValues->add($multiselectCustomFieldValuesModel);
+$contact->setCustomFieldsValues($contactCustomFieldsValues);
+echo ('<pre>');
+var_dump($contact);
+
+try {
+    $contactModel = $apiClient->contacts()->addOne($contact);
+} catch (AmoCRMApiException $e) {
+    printError($e);
+    die;
+}
 
 
 
