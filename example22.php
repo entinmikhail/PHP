@@ -39,6 +39,8 @@ use AmoCRM\Models\BaseApiModel;
 use AmoCRM\Models\CustomFieldsValues\ValueCollections\MultiselectCustomFieldValueCollection;
 use AmoCRM\Models\CustomFieldsValues\MultiselectCustomFieldValuesModel;
 use AmoCRM\Models\CustomFieldsValues;
+use AmoCRM\Models\CustomFields\TextCustomFieldModel;
+
 
 
 
@@ -49,9 +51,9 @@ session_start();
 $baseDomain = 'msha3212.amocrm.ru';
 
 $provider = new AmoCRM([
-    'clientId' => 'f3d3fc17-99d4-419e-8434-2f18893d3701',
-    'clientSecret' => 'Wc3I03z2rUMDUxFdojXNUa13FcqTKe2TSzaKwZxn4WAWqAiOGn0twDvKyYh30vRj',
-    'redirectUri' => 'https://zxcsfzxc.000webhostapp.com/example22.php',
+    'clientId' => '3a71564e-542d-469f-ac27-39acaeeb6c15',
+    'clientSecret' => 'O0wggkDOHlO99WgSUskgszcAt5zOEBY6mEWm5lLSwrtMKlPoT2Td4rgxc77gGDTG',
+    'redirectUri' => 'https://shadowrazezxcqwe.000webhostapp.com/example22.php',
     'baseDomain' => 'msha3212.amocrm.ru',
 ]);
 
@@ -151,9 +153,9 @@ if (!isset($_GET['request'])) {
 
 
 
-$clientId = 'f3d3fc17-99d4-419e-8434-2f18893d3701';
-$clientSecret = 'Wc3I03z2rUMDUxFdojXNUa13FcqTKe2TSzaKwZxn4WAWqAiOGn0twDvKyYh30vRj';
-$redirectUri = 'https://zxcsfzxc.000webhostapp.com/example22.php';
+$clientId = '3a71564e-542d-469f-ac27-39acaeeb6c15';
+$clientSecret = 'Bw3BHiMbvtXJylBDb6wkDVUUP5wr43VW5FUvYK1a6OTWbkk7nqYqDPkO5NHxPJUX';
+$redirectUri = 'https://shadowrazezxczxc.000webhostapp.com/example22.phpp';
 $apiClient = new \AmoCRM\Client\AmoCRMApiClient($clientId, $clientSecret, $redirectUri);
 $apiClient->setAccountBaseDomain($baseDomain);
 
@@ -175,11 +177,42 @@ $apiClient->setAccessToken($accessToken)
 $leadsService = $apiClient->leads();
 $contactsService = $apiClient->contacts();
 $companiesService = $apiClient->companies();
+$customFieldsService = $apiClient->customFields(EntityTypesInterface::CONTACTS);
+
+
+
+
+
+$customFieldName = 'Поле Список';
+$isCustomFieldName = false;
+$result = json_decode($customFieldsService->get(), true);
+
+foreach ($result as $i){
+    if ($i["name"] === $customFieldName){
+        $isCustomFieldName = true;
+    }
+}
+
+if (!$isCustomFieldName){
+    $customFieldsCollection = new CustomFieldsCollection();
+    $customFields = new SelectCustomFieldModel();
+    $customFields->setName($customFieldName)
+        ->setSort(30)
+        ->setEnums((new CustomFieldEnumsCollection())
+                ->add((new EnumModel())->setValue('1')->setSort(10))
+                ->add((new EnumModel())->setValue('2')->setSort(20))
+                ->add((new EnumModel())->setValue('3')->setSort(30)));
+}
+
+
+
 
 for($i = 0;$i != 1;$i++){
     $leadsCollection = new LeadsCollection();
     $companiesCollection = new CompaniesCollection();
     $linksCollection = new LinksCollection();
+    $linksCollection = new LinksCollection();
+    $contactsCollection = new ContactsCollection();
 
     $contact = new ContactModel();
     $lead = new LeadModel();
@@ -191,33 +224,52 @@ for($i = 0;$i != 1;$i++){
 
     $companiesCollection->add($company);
     $leadsCollection->add($lead);
-
-
+    $contactsCollection->add($contact);
+    
     $contactCustomFieldsValues = new CustomFieldsValuesCollection();
     $multiselectCustomFieldValuesModel = new MultiselectCustomFieldValuesModel();
-    $multiselectCustomFieldValuesModel->setFieldId(123);
-    $multiselectCustomFieldValuesModel->setValues((new MultiselectCustomFieldValueCollection())
-                                        ->add((new MultiselectCustomFieldValueModel())->setValue(1))
-                                        ->add((new MultiselectCustomFieldValueModel())->setValue(2))
-                                        ->add((new MultiselectCustomFieldValueModel())->setValue(3)));
-    $contactCustomFieldsValues->add($multiselectCustomFieldValuesModel);
-    //$lead->setCustomFieldsValues($contactCustomFieldsValues);
 
+    $multiselectCustomFieldValuesModel->setFieldId(488133);
+    $multiselectCustomFieldValuesModel->setValues((new MultiselectCustomFieldValueCollection())
+                                        ->add((new MultiselectCustomFieldValueModel())->setValue("2")));
+    $contactCustomFieldsValues->add($multiselectCustomFieldValuesModel);
+
+    $contact->setCustomFieldsValues($contactCustomFieldsValues);
+        
 
 
     $companiesCollection = $companiesService->add($companiesCollection);
     $leadsCollection = $leadsService->add($leadsCollection);
-    $contactModel = $contactsService->addOne($contact);
-
+    $contactsCollection = $contactsService->add($contactsCollection);
+    
     $linksCollection->add((new ContactModel())->setId($contact->getId()))
-                    ->add((new CompanyModel())->setId($company->getId()))
-                    ->add((new CustomFieldsValuesCollection())->setFieldId($contactCustomFieldsValues->getFieldId));
+                    ->add((new CompanyModel())->setId($company->getId()));
 
     $linksCollection = $leadsService->link((new LeadModel())->setId($lead->getId()), $linksCollection);
 }
 
 
-    
+
+
+
+echo ('<pre>');
+printValue(json_decode($leadsService->get(), true));
+printValue(json_decode($contactsService->get(), true));
+printValue(json_decode($companiesService->get(), true));
+
+
+
+function printValue($collection)
+{
+    foreach ($collection as $model)
+    {
+        foreach($model as $value)
+        {
+            echo($value);
+        }
+    }
+}
+ 
 function saveToken($accessToken)
 {
     if (
@@ -239,6 +291,7 @@ function saveToken($accessToken)
         exit('Invalid access token ' . var_export($accessToken, true));
     }
 }
+
 function getToken()
 {
     $accessToken = json_decode(file_get_contents(TOKEN_FILE), true);
