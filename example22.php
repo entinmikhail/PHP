@@ -265,7 +265,7 @@ function printValue($collection)
     {
         foreach($model as $value)
         {
-            echo($value);
+            echo($value . '<br>');
         }
     }
 }
