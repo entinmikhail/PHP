@@ -181,7 +181,7 @@ $contactsService = $apiClient->contacts();
 $companiesService = $apiClient->companies();
 $customFieldsService = $apiClient->customFields(EntityTypesInterface::CONTACTS);
 $linksService = $apiClient->links(EntityTypesInterface::LEADS);
-
+echo ('<pre>');
 
 
 
@@ -204,8 +204,12 @@ if (!$isCustomFieldName){
                 ->add((new EnumModel())->setValue('1')->setSort(10))
                 ->add((new EnumModel())->setValue('2')->setSort(20))
                 ->add((new EnumModel())->setValue('3')->setSort(30)));
+    var_dump($customFields);
+    $customFieldsCollection->add($customFields);
+    var_dump($customFieldsCollection);
+    $customFieldsCollection = $customFieldsService->add($customFieldsCollection);
 }
-echo ('<pre>');
+
 
 
 
@@ -213,61 +217,61 @@ echo ('<pre>');
 
 $i = 0;
 $n = 0;
-if (false){
-    for($j = 0;$j < 5; $j++){ 
-        $leadsCollection = new LeadsCollection();
-        $linksCollection = new LinksCollection();
-        $companiesCollection = new CompaniesCollection();
-        $contactsCollection = new ContactsCollection();
-        for(;$i < 50 + $n; $i++){
 
-            $contact = new ContactModel();
-            $lead = new LeadModel();
-            $company = new CompanyModel();
-            $contacts = new ContactsCollection();
-            $contact->setName('Zxc' . $i);
-            $contacts->add($contact);
-            $company->setName('Asd' . $i);
-            $lead->setName('Qwe' . $i)
-                 ->setCompany($company)
-                 ->setContacts($contacts);
+for($j = 0;$j < 1; $j++){ 
+    $leadsCollection = new LeadsCollection();
+    $linksCollection = new LinksCollection();
+    $companiesCollection = new CompaniesCollection();
+    $contactsCollection = new ContactsCollection();
+    for(;$i < 2 + $n; $i++){
+
+        $contact = new ContactModel();
+        $lead = new LeadModel();
+        $company = new CompanyModel();
+        $contacts = new ContactsCollection();
+        $contact->setName('Zxc' . $i);
+        $contacts->add($contact);
+        $company->setName('Asd' . $i);
+        $lead->setName('Qwe' . $i)
+                ->setCompany($company)
+                ->setContacts($contacts);
 
 
-            $companiesCollection->add($company);
-            $leadsCollection->add($lead);
-            $contactsCollection->add($contact);
-            
-            $contactCustomFieldsValues = new CustomFieldsValuesCollection();
-            $multiselectCustomFieldValuesModel = new MultiselectCustomFieldValuesModel();
+        $companiesCollection->add($company);
+        $leadsCollection->add($lead);
+        $contactsCollection->add($contact);
+        
+        $contactCustomFieldsValues = new CustomFieldsValuesCollection();
+        $multiselectCustomFieldValuesModel = new MultiselectCustomFieldValuesModel();
 
-            $multiselectCustomFieldValuesModel->setFieldId(488133);
-            $multiselectCustomFieldValuesModel->setValues((new MultiselectCustomFieldValueCollection())
-                                                ->add((new MultiselectCustomFieldValueModel())->setValue("2")));
-            $contactCustomFieldsValues->add($multiselectCustomFieldValuesModel);
-            $contact->setCustomFieldsValues($contactCustomFieldsValues);
-        }
-        $n = $i;
-        $companiesService->add($companiesCollection);
-        $leadsService->add($leadsCollection);
-        $contactsService->add($contactsCollection);
+        $multiselectCustomFieldValuesModel->setFieldId($customFieldsCollection[0]->getId());
+        $multiselectCustomFieldValuesModel->setValues((new MultiselectCustomFieldValueCollection())
+                                            ->add((new MultiselectCustomFieldValueModel())->setValue("2")));
+        $contactCustomFieldsValues->add($multiselectCustomFieldValuesModel);
+        $contact->setCustomFieldsValues($contactCustomFieldsValues);
+    }
+    $n = $i;
+    $companiesService->add($companiesCollection);
+    $leadsService->add($leadsCollection);
+    $contactsService->add($contactsCollection);
 
-        foreach($leadsCollection as $model) {
-                                
-            $linksCollection->add((new LinkModel())
+    foreach($leadsCollection as $model) {
+                            
+        $linksCollection->add((new LinkModel())
+                            ->setEntityId($model->getId())
+                            ->setEntityType(EntityTypesInterface::LEADS)
+                            ->setToEntityId($model->getContacts()[0]->getId())
+                            ->setToEntityType(EntityTypesInterface::CONTACTS))
+                        ->add(
+                            (new LinkModel())
                                 ->setEntityId($model->getId())
                                 ->setEntityType(EntityTypesInterface::LEADS)
-                                ->setToEntityId($model->getContacts()[0]->getId())
-                                ->setToEntityType(EntityTypesInterface::CONTACTS))
-                            ->add(
-                                (new LinkModel())
-                                    ->setEntityId($model->getId())
-                                    ->setEntityType(EntityTypesInterface::LEADS)
-                                    ->setToEntityId($model->getCompany()->getId())
-                                    ->setToEntityType(EntityTypesInterface::COMPANIES));
-        }
-        $linksService->add($linksCollection);
+                                ->setToEntityId($model->getCompany()->getId())
+                                ->setToEntityType(EntityTypesInterface::COMPANIES));
     }
+    $linksService->add($linksCollection);
 }
+
 
 echo ('<pre>');
 ?>
