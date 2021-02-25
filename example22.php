@@ -39,9 +39,10 @@ use AmoCRM\Models\BaseApiModel;
 use AmoCRM\Models\CustomFieldsValues\ValueCollections\MultiselectCustomFieldValueCollection;
 use AmoCRM\Models\CustomFieldsValues\MultiselectCustomFieldValuesModel;
 use AmoCRM\Models\CustomFieldsValues;
+use AmoCRM\Models\LinkModel;
 use AmoCRM\Models\CustomFields\TextCustomFieldModel;
 use AmoCRM\Filters\EntitiesLinksFilter;
-
+use \League\OAuth2\Client\Provider\ResourceOwnerInterface;
 
 
 
@@ -58,99 +59,99 @@ $provider = new AmoCRM([
     'baseDomain' => 'msha3212.amocrm.ru',
 ]);
 
-// if (isset($_GET['referer'])) {
-//     $provider->setBaseDomain($_GET['referer']);
-// }
+if (isset($_GET['referer'])) {
+    $provider->setBaseDomain($_GET['referer']);
+}
 
-// if (!isset($_GET['request'])) {
-//     if (!isset($_GET['code'])) {
-//         $_SESSION['oauth2state'] = bin2hex(random_bytes(16));
-//         if (true) {
-//             echo '<div>
-//                 <script
-//                     class="amocrm_oauth"
-//                     charset="utf-8"
-//                     data-client-id="' . $provider->getClientId() . '"
-//                     data-title="Установить интеграцию"
-//                     data-compact="false"
-//                     data-class-name="className"
-//                     data-color="default"
-//                     data-state="' . $_SESSION['oauth2state'] . '"
-//                     data-error-callback="handleOauthError"
-//                     src="https://www.amocrm.ru/auth/button.min.js"
-//                 ></script>
-//                 </div>';
-//             echo '<script>
-//             handleOauthError = function(event) {
-//                 alert(\'ID клиента - \' + event.client_id + \' Ошибка - \' + event.error);
-//             }
-//             </script>';
-//             die;
-//         } else {
-//             $authorizationUrl = $provider->getAuthorizationUrl(['state' => $_SESSION['oauth2state']]);
-//             header('Location: ' . $authorizationUrl);
-//         }
-//     } elseif (empty($_GET['state']) || empty($_SESSION['oauth2state']) || ($_GET['state'] !== $_SESSION['oauth2state'])) {
-//         unset($_SESSION['oauth2state']);
-//         exit('Invalid state');
-//     }
-//     try {
-//         $accessToken = $provider->getAccessToken(new League\OAuth2\Client\Grant\AuthorizationCode(), [
-//             'code' => $_GET['code'],
-//         ]);
+if (!isset($_GET['request'])) {
+    if (!isset($_GET['code'])) {
+        $_SESSION['oauth2state'] = bin2hex(random_bytes(16));
+        if (true) {
+            echo '<div>
+                <script
+                    class="amocrm_oauth"
+                    charset="utf-8"
+                    data-client-id="' . $provider->getClientId() . '"
+                    data-title="Установить интеграцию"
+                    data-compact="false"
+                    data-class-name="className"
+                    data-color="default"
+                    data-state="' . $_SESSION['oauth2state'] . '"
+                    data-error-callback="handleOauthError"
+                    src="https://www.amocrm.ru/auth/button.min.js"
+                ></script>
+                </div>';
+            echo '<script>
+            handleOauthError = function(event) {
+                alert(\'ID клиента - \' + event.client_id + \' Ошибка - \' + event.error);
+            }
+            </script>';
+            die;
+        } else {
+            $authorizationUrl = $provider->getAuthorizationUrl(['state' => $_SESSION['oauth2state']]);
+            header('Location: ' . $authorizationUrl);
+        }
+    } elseif (empty($_GET['state']) || empty($_SESSION['oauth2state']) || ($_GET['state'] !== $_SESSION['oauth2state'])) {
+        unset($_SESSION['oauth2state']);
+        exit('Invalid state');
+    }
+    try {
+        $accessToken = $provider->getAccessToken(new League\OAuth2\Client\Grant\AuthorizationCode(), [
+            'code' => $_GET['code'],
+        ]);
 
-//         if (!$accessToken->hasExpired()) {
-//             saveToken([
-//                 'accessToken' => $accessToken->getToken(),
-//                 'refreshToken' => $accessToken->getRefreshToken(),
-//                 'expires' => $accessToken->getExpires(),
-//                 'baseDomain' => $provider->getBaseDomain(),
-//             ]);
-//         }
-//     } catch (Exception $e) {
-//         die((string)$e);
-//     }
-//     $ownerDetails = $provider->getResourceOwner($accessToken);
+        if (!$accessToken->hasExpired()) {
+            saveToken([
+                'accessToken' => $accessToken->getToken(),
+                'refreshToken' => $accessToken->getRefreshToken(),
+                'expires' => $accessToken->getExpires(),
+                'baseDomain' => $provider->getBaseDomain(),
+            ]);
+        }
+    } catch (Exception $e) {
+        die((string)$e);
+    }
+    $ownerDetails = $provider->getResourceOwner($accessToken);
 
-    //printf('Hello, %s!', $ownerDetails->getName());
+    printf('Hello, %s!', $ownerDetails->getName());
 
-// } else {
+} else {
          $accessToken = getToken();
 
-//     $provider->setBaseDomain($accessToken->getValues()['baseDomain']);
+    $provider->setBaseDomain($accessToken->getValues()['baseDomain']);
 
 
-//     if ($accessToken->hasExpired()) {
-//         try {
-//             $accessToken = $provider->getAccessToken(new League\OAuth2\Client\Grant\RefreshToken(), [
-//                 'refresh_token' => $accessToken->getRefreshToken(),
-//             ]);
+    if ($accessToken->hasExpired()) {
+        try {
+            $accessToken = $provider->getAccessToken(new League\OAuth2\Client\Grant\RefreshToken(), [
+                'refresh_token' => $accessToken->getRefreshToken(),
+            ]);
 
-//             saveToken([
-//                 'accessToken' => $accessToken->getToken(),
-//                 'refreshToken' => $accessToken->getRefreshToken(),
-//                 'expires' => $accessToken->getExpires(),
-//                 'baseDomain' => $provider->getBaseDomain(),
-//             ]);
+            saveToken([
+                'accessToken' => $accessToken->getToken(),
+                'refreshToken' => $accessToken->getRefreshToken(),
+                'expires' => $accessToken->getExpires(),
+                'baseDomain' => $provider->getBaseDomain(),
+            ]);
 
-//         } catch (Exception $e) {
-//             die((string)$e);
-//         }
-//     }
+        } catch (Exception $e) {
+            die((string)$e);
+        }
+    }
 
    $token = $accessToken->getToken();
 
-//     try {
-//         $data = $provider->getHttpClient()
-//             ->request('GET', $provider->urlAccount() . 'api/v2/account', [
-//                 'headers' => $provider->getHeaders($accessToken)
-//             ]);
-//         $parsedBody = json_decode($data->getBody()->getContents(), true);
-//         printf('ID аккаунта - %s, название - %s', $parsedBody['id'], $parsedBody['name']);
-//     } catch (GuzzleHttp\Exception\GuzzleException $e) {
-//         var_dump((string)$e);
-//     }
-// }
+    try {
+        $data = $provider->getHttpClient()
+            ->request('GET', $provider->urlAccount() . 'api/v2/account', [
+                'headers' => $provider->getHeaders($accessToken)
+            ]);
+        $parsedBody = json_decode($data->getBody()->getContents(), true);
+        printf('ID аккаунта - %s, название - %s', $parsedBody['id'], $parsedBody['name']);
+    } catch (GuzzleHttp\Exception\GuzzleException $e) {
+        var_dump((string)$e);
+    }
+}
 
 
 
@@ -204,125 +205,127 @@ if (!$isCustomFieldName){
                 ->add((new EnumModel())->setValue('2')->setSort(20))
                 ->add((new EnumModel())->setValue('3')->setSort(30)));
 }
+echo ('<pre>');
 
 
 
 
-// for($i = 0;$i != 1;$i++){
-//     $leadsCollection = new LeadsCollection();
-//     $companiesCollection = new CompaniesCollection();
-//     $linksCollection = new LinksCollection();
-//     $linksCollection = new LinksCollection();
-//     $contactsCollection = new ContactsCollection();
 
-//     $contact = new ContactModel();
-//     $lead = new LeadModel();
-//     $company = new CompanyModel();
+$i = 0;
+$n = 0;
+if (false){
+    for($j = 0;$j < 5; $j++){ 
+        $leadsCollection = new LeadsCollection();
+        $linksCollection = new LinksCollection();
+        $companiesCollection = new CompaniesCollection();
+        $contactsCollection = new ContactsCollection();
+        for(;$i < 50 + $n; $i++){
 
-//     $contact->setName('Zxc' . $i);
-//     $lead->setName('Qwe' . $i);
-//     $company->setName('Asd' . $i);
-
-//     $companiesCollection->add($company);
-//     $leadsCollection->add($lead);
-//     $contactsCollection->add($contact);
-    
-//     $contactCustomFieldsValues = new CustomFieldsValuesCollection();
-//     $multiselectCustomFieldValuesModel = new MultiselectCustomFieldValuesModel();
-
-//     $multiselectCustomFieldValuesModel->setFieldId(488133);
-//     $multiselectCustomFieldValuesModel->setValues((new MultiselectCustomFieldValueCollection())
-//                                         ->add((new MultiselectCustomFieldValueModel())->setValue("2")));
-//     $contactCustomFieldsValues->add($multiselectCustomFieldValuesModel);
-
-//     $contact->setCustomFieldsValues($contactCustomFieldsValues);
-        
+            $contact = new ContactModel();
+            $lead = new LeadModel();
+            $company = new CompanyModel();
+            $contacts = new ContactsCollection();
+            $contact->setName('Zxc' . $i);
+            $contacts->add($contact);
+            $company->setName('Asd' . $i);
+            $lead->setName('Qwe' . $i)
+                 ->setCompany($company)
+                 ->setContacts($contacts);
 
 
-//     $companiesCollection = $companiesService->add($companiesCollection);
-//     $leadsCollection = $leadsService->add($leadsCollection);
-//     $contactsCollection = $contactsService->add($contactsCollection);
-    
-//     $linksCollection->add((new ContactModel())->setId($contact->getId()))
-//                     ->add((new CompanyModel())->setId($company->getId()));
+            $companiesCollection->add($company);
+            $leadsCollection->add($lead);
+            $contactsCollection->add($contact);
+            
+            $contactCustomFieldsValues = new CustomFieldsValuesCollection();
+            $multiselectCustomFieldValuesModel = new MultiselectCustomFieldValuesModel();
 
-//     $linksCollection = $leadsService->link((new LeadModel())->setId($lead->getId()), $linksCollection);
-// }
+            $multiselectCustomFieldValuesModel->setFieldId(488133);
+            $multiselectCustomFieldValuesModel->setValues((new MultiselectCustomFieldValueCollection())
+                                                ->add((new MultiselectCustomFieldValueModel())->setValue("2")));
+            $contactCustomFieldsValues->add($multiselectCustomFieldValuesModel);
+            $contact->setCustomFieldsValues($contactCustomFieldsValues);
+        }
+        $n = $i;
+        $companiesService->add($companiesCollection);
+        $leadsService->add($leadsCollection);
+        $contactsService->add($contactsCollection);
 
-
-
-
+        foreach($leadsCollection as $model) {
+                                
+            $linksCollection->add((new LinkModel())
+                                ->setEntityId($model->getId())
+                                ->setEntityType(EntityTypesInterface::LEADS)
+                                ->setToEntityId($model->getContacts()[0]->getId())
+                                ->setToEntityType(EntityTypesInterface::CONTACTS))
+                            ->add(
+                                (new LinkModel())
+                                    ->setEntityId($model->getId())
+                                    ->setEntityType(EntityTypesInterface::LEADS)
+                                    ->setToEntityId($model->getCompany()->getId())
+                                    ->setToEntityType(EntityTypesInterface::COMPANIES));
+        }
+        $linksService->add($linksCollection);
+    }
+}
 
 echo ('<pre>');
-// // printValues(json_decode($leadsService->get(), true));
-//  var_dump(json_decode($leadsService->get(), true));
-// // printValues(json_decode($contactsService->get(), true));
-//  var_dump(json_decode($contactsService->get(), true));
-// // printValues(json_decode($companiesService->get(), true));
-//  var_dump(json_decode($companiesService->get(), true));
-
-
-
-
-$leads = json_decode($leadsService->get(), true);
-
-echo ('<pre>');
-// $filter = new EntitiesLinksFilter([1804165]);
-// var_dump($leadsService->get());
-// var_dump(json_decode(json_encode($linksService->get($filter)), true));
-
-
 ?>
 <table border="1">
     <tr>
         <td>Id</td>
         <td>Сделка</td>
         <td>Контакты</td>
-        <td>Компании</td>
+        <td>Компания</td>
     </tr>
 <?php
-foreach ($leads as $key => $model):
-    $leadName = $model['name'];
-    $leadId = $model['id'];
-    $filter = new EntitiesLinksFilter([$leadId]);
-    $linksCollection = json_decode(json_encode($linksService->get($filter)), true);
-    $leadContactId = $linksCollection[0]['to_entity_id'];
-    $leadCompanyId = $linksCollection[1]['to_entity_id'];
-    $leadContactName = $contactsService->getOne($leadContactId)->getName();
-    $leadCompanyName = $companiesService->getOne($leadCompanyId)->getName();
-    $leadContactCFValue = json_decode($contactsService->getOne($leadContactId)->getCustomFieldsValues(), true)[0]['field_name'];
-    ?>
+
+for($i = 1;$i != 4;$i++):
+    $filter = new LeadsFilter();
+    $filter->setLimit(250)
+            ->setPage($i);
+    $leads = $leadsService->get($filter, ['contacts']);
+    $contacts = $contactsService->get($filter)->toArray();
+    $companys = $companiesService->get($filter)->toArray();
+
+    foreach ($leads as $model):
+        $leadName = $model->getName();
+        $leadId = $model->getId();
+        $leadContactName = current($contacts)['name'];
+        $leadCompanyName = current($companys)['name'];
+        next($contacts);
+        next($companys);
+        ?>
+        
 
 
-    <tr>
-        <td><?php echo ($leadId); ?></td>
-        <td><?php echo ($leadName); ?></td>
-        <td><?php echo ($leadContactName .'<br>' . $leadContactCFValue . '<br>' . $leadContactId); ?></td>
-        <td><?php echo ($leadCompanyName . '<br>' . $leadCompanyId); ?></td>
 
-    </tr>
+        <tr>
+            <td><?php echo ($leadId); ?></td>
+            <td><?php echo ($leadName); ?></td>
+            <td><?php echo ($leadContactName); ?></td>
+            <td><?php echo ($leadCompanyName); ?></td>
+        </tr>
 
-    <?php endforeach;?>
-</table>
+        <?php endforeach;
+        endfor;?>
+    </table>
 <?php
 
-// function printValues($collection)
-// {
-//     foreach ($collection as $model)
-//     {
-//         foreach($model as $key => $value)
-//         {
-//             if ($key == 'custom_fields_values' && isset($value)){
-//                 foreach($value as $value){
-//                     echo($value['field_name'] . '<br>');
-//                     break;
-//                 }
-//             }elseif ($key != 'company') {
-//                 echo($value . '<br>');
-//             }
-//         }
-//     }
-// }
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
  
 function saveToken($accessToken)
 {
